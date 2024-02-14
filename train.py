@@ -50,8 +50,11 @@ def main():
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
     # [참고] argument를 manual하게 수정하고 싶은 경우에 아래와 같은 방식을 사용할 수 있습니다
-    # training_args.per_device_train_batch_size = 4
     # print(training_args.per_device_train_batch_size)
+    training_args.per_device_train_batch_size = 64
+    training_args.per_device_eval_batch_size = 64
+    training_args.num_train_epochs = 10
+    
     print(f"model is from {model_args.model_name_or_path}")
     print(f"data is from {data_args.dataset_name}")
 
