@@ -51,10 +51,14 @@ def main():
 
     # [참고] argument를 manual하게 수정하고 싶은 경우에 아래와 같은 방식을 사용할 수 있습니다
     # print(training_args.per_device_train_batch_size)
-    training_args.per_device_train_batch_size = 64
-    training_args.per_device_eval_batch_size = 64
-    training_args.num_train_epochs = 10
-    
+    training_args.per_device_train_batch_size = 16
+    training_args.per_device_eval_batch_size = 16
+    training_args.num_train_epochs = 20
+    training_args.learning_rate=5e-5
+    training_args.evaluation_strategy='steps' if training_args.do_eval else 'no'
+    training_args.eval_steps = 150
+    training_args.report_to = ['wandb']
+
     print(f"model is from {model_args.model_name_or_path}")
     print(f"data is from {data_args.dataset_name}")
 
