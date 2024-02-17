@@ -55,6 +55,7 @@ def main():
     training_args.per_device_eval_batch_size = 16
     training_args.num_train_epochs = 20
     training_args.learning_rate=5e-5
+    training_args.save_total_limits=2
     training_args.evaluation_strategy='steps' if training_args.do_eval else 'no'
     training_args.eval_steps = 150
     training_args.report_to = ['wandb']
