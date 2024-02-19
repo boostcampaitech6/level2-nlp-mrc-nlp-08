@@ -1,5 +1,4 @@
 import logging
-import os
 import sys
 import random
 import numpy as np
@@ -49,17 +48,6 @@ def main():
     )
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
-    # [참고] argument를 manual하게 수정하고 싶은 경우에 아래와 같은 방식을 사용할 수 있습니다
-    # print(training_args.per_device_train_batch_size)
-    training_args.per_device_train_batch_size = 16
-    training_args.per_device_eval_batch_size = 16
-    training_args.num_train_epochs = 10
-    training_args.learning_rate=5e-5
-    training_args.save_total_limits=5
-    training_args.evaluation_strategy='steps' if training_args.do_eval else 'no'
-    training_args.eval_steps = 200
-    training_args.report_to = ['wandb']
-
     print(f"model is from {model_args.model_name_or_path}")
     print(f"data is from {data_args.dataset_name}")
 
@@ -81,37 +69,21 @@ def main():
 
     # AutoConfig를 이용하여 pretrained model 과 tokenizer를 불러옵니다.
     # argument로 원하는 모델 이름을 설정하면 옵션을 바꿀 수 있습니다.
-    config = AutoConfig.from_pretrained(
-        model_args.config_name
-        if model_args.config_name is not None
-        else model_args.model_name_or_path,
-    )
+    config = AutoConfig.from_pretrained(model_args.model_name_or_path)
     tokenizer = AutoTokenizer.from_pretrained(
-        model_args.tokenizer_name
-        if model_args.tokenizer_name is not None
-        else model_args.model_name_or_path,
-        # 'use_fast' argument를 True로 설정할 경우 rust로 구현된 tokenizer를 사용할 수 있습니다.
-        # False로 설정할 경우 python으로 구현된 tokenizer를 사용할 수 있으며,
-        # rust version이 비교적 속도가 빠릅니다.
+        model_args.model_name_or_path,
         use_fast=True,
     )
-    model = AutoModelForQuestionAnswering.from_pretrained(
-        model_args.model_name_or_path,
-        from_tf=bool(".ckpt" in model_args.model_name_or_path),
-        config=config,
-    )
+    model = AutoModelForQuestionAnswering.from_pretrained(model_args.model_name_or_path)
 
     print(
-        type(training_args),
         type(model_args),
         type(datasets),
         type(tokenizer),
         type(model),
     )
 
-    # do_train mrc model 혹은 do_eval mrc model
-    if training_args.do_train or training_args.do_eval:
-        run_mrc(data_args, training_args, model_args, datasets, tokenizer, model)
+    run_mrc(data_args, training_args, model_args, datasets, tokenizer, model)
 
 
 def run_mrc(
@@ -123,13 +95,7 @@ def run_mrc(
     model,
 ) -> NoReturn:
 
-    # dataset을 전처리합니다.
-    # training과 evaluation에서 사용되는 전처리는 아주 조금 다른 형태를 가집니다.
-    if training_args.do_train:
-        column_names = datasets["train"].column_names
-    else:
-        column_names = datasets["validation"].column_names
-
+    column_names = datasets["validation"].column_names
     question_column_name = "question" if "question" in column_names else column_names[0]
     context_column_name = "context" if "context" in column_names else column_names[1]
     answer_column_name = "answers" if "answers" in column_names else column_names[2]
@@ -142,31 +108,6 @@ def run_mrc(
     last_checkpoint, max_seq_length = check_no_error(
         data_args, training_args, datasets, tokenizer
     )
-    
-    prepare_train_features_partial = partial(prepare_train_features, 
-                                             tokenizer=tokenizer,
-                                             data_args=data_args,
-                                             pad_on_right=pad_on_right,
-                                             max_seq_length=max_seq_length,
-                                             question_column_name=question_column_name,
-                                             context_column_name=context_column_name,
-                                             answer_column_name=answer_column_name
-                                             )
-
-    if training_args.do_train:
-        if "train" not in datasets:
-            raise ValueError("--do_train requires a train dataset")
-        train_dataset = datasets["train"]
-
-        # dataset에서 train feature를 생성합니다.
-        train_dataset = train_dataset.map(
-            prepare_train_features_partial,
-            batched=True,
-            num_proc=data_args.preprocessing_num_workers,
-            remove_columns=column_names,
-            load_from_cache_file=not data_args.overwrite_cache,
-        )
-
 
     prepare_validation_features_partial = partial(prepare_validation_features, 
                                                   tokenizer=tokenizer,
@@ -212,7 +153,7 @@ def run_mrc(
     trainer = QuestionAnsweringTrainer(
         model=model,
         args=training_args,
-        train_dataset=train_dataset if training_args.do_train else None,
+        train_dataset=None,
         eval_dataset=eval_dataset if training_args.do_eval else None,
         eval_examples=datasets["validation"] if training_args.do_eval else None,
         tokenizer=tokenizer,
@@ -220,38 +161,6 @@ def run_mrc(
         post_process_function=post_processing_function_partial,
         compute_metrics=compute_metrics,
     )
-    
-    
-    # Training
-    if training_args.do_train:
-        if last_checkpoint is not None:
-            checkpoint = last_checkpoint
-        elif os.path.isdir(model_args.model_name_or_path):
-            checkpoint = model_args.model_name_or_path
-        else:
-            checkpoint = None
-        train_result = trainer.train(resume_from_checkpoint=checkpoint)
-        trainer.save_model()  # Saves the tokenizer too for easy upload
-
-        metrics = train_result.metrics
-        metrics["train_samples"] = len(train_dataset)
-
-        trainer.log_metrics("train", metrics)
-        trainer.save_metrics("train", metrics)
-        trainer.save_state()
-
-        output_train_file = os.path.join(training_args.output_dir, "train_results.txt")
-
-        with open(output_train_file, "w") as writer:
-            logger.info("***** Train results *****")
-            for key, value in sorted(train_result.metrics.items()):
-                logger.info(f"  {key} = {value}")
-                writer.write(f"{key} = {value}\n")
-
-        # State 저장
-        trainer.state.save_to_json(
-            os.path.join(training_args.output_dir, "trainer_state.json")
-        )
 
     # Evaluation
     if training_args.do_eval:
