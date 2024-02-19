@@ -7,8 +7,7 @@ from transformers import AutoTokenizer
 import numpy as np
 from datasets import concatenate_datasets, load_from_disk
 
-from retrieve.sparse import SparseRetrieval
-from retrieve.dense import DenseRetrieval
+from SparseRetrieval import SparseRetrieval
 
 seed = 2024
 random.seed(seed) # python random seed 고정
