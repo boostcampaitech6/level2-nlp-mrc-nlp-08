@@ -1,11 +1,11 @@
 from typing import List, Optional, Tuple, Union
 
 import torch
-import torch.utils.checkpoint
 
 from torch import nn
-from torch.nn import BCEWithLogitsLoss, CrossEntropyLoss, MSELoss
+from torch.nn import CrossEntropyLoss
 
+from transformers.modeling_bert import BertPreTrainedModel
 from transformers.modeling_outputs import QuestionAnsweringModelOutput
 from MyBertModel import MyBertModel
 
