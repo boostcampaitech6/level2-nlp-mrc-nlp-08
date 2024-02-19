@@ -8,6 +8,7 @@ import numpy as np
 from datasets import concatenate_datasets, load_from_disk
 
 from SparseRetrieval import SparseRetrieval
+from DenseRetrieval import DenseRetrieval, BertEncoder
 
 seed = 2024
 random.seed(seed) # python random seed 고정
@@ -24,7 +25,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="")
     parser.add_argument(
         "--dataset_name", metavar="../data/train_dataset", type=str, help="",
-        default="../data/train_dataset"
+        default="../../data/train_dataset"
     )
     parser.add_argument(
         "--model_name_or_path",
@@ -33,12 +34,12 @@ if __name__ == "__main__":
         help="",
         default="bert-base-multilingual-cased"
     )
-    parser.add_argument("--data_path", metavar="../data", type=str, help="", default="../data")
+    parser.add_argument("--data_path", metavar="../data", type=str, help="", default="../../data")
     parser.add_argument(
         "--context_path", metavar="wikipedia_documents", type=str, help="",
         default="wikipedia_documents.json"
     )
-    parser.add_argument("--retrieve_type", default="sparse")
+    parser.add_argument("--retrieve_type", default="dense")
     parser.add_argument("--use_faiss", metavar=False, type=bool, help="", default=False)
 
     args = parser.parse_args()
@@ -54,18 +55,16 @@ if __name__ == "__main__":
     print("*" * 40, "query dataset", "*" * 40)
     print(full_ds)
 
-    tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path, use_fast=False,)
-
     if args.retrieve_type == "dense":
-        pass
-        # retriever = DenseRetrieval(
-        #     tokenizer=tokenizer,
-        #     data_path=args.data_path,
-        #     context_path=args.context_path,
-        # )
+        retriever = DenseRetrieval(
+            tokenizer=AutoTokenizer.from_pretrained("klue/bert-base", use_fast=False),
+            p_encoder=BertEncoder.from_pretrained("./p_encoder"),
+            q_encoder=BertEncoder.from_pretrained("./q_encoder")
+        )
+        retriever.get_dense_embedding()
     else:
         retriever = SparseRetrieval(
-            tokenize_fn=tokenizer.tokenize,
+            tokenize_fn=AutoTokenizer.from_pretrained(args.model_name_or_path, use_fast=False).tokenize,
             data_path=args.data_path,
             context_path=args.context_path,
         )

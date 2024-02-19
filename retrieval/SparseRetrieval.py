@@ -233,7 +233,7 @@ class SparseRetrieval:
         """
         Arguments:
             queries (List):
-                하나의 Query를 받습니다.
+                하나 이상의 Query를 받습니다.
             k (Optional[int]): 1
                 상위 몇 개의 Passage를 반환할지 정합니다.
         Note:
