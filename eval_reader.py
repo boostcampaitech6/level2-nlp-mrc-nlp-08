@@ -119,7 +119,6 @@ def run_mrc(
                                                   answer_column_name=answer_column_name
                                                   )
     
-<<<<<<< HEAD
     eval_dataset = datasets["validation"]
     # Validation Feature 생성
     eval_dataset = eval_dataset.map(
@@ -129,19 +128,6 @@ def run_mrc(
         remove_columns=column_names,
         load_from_cache_file=not data_args.overwrite_cache,
     )
-=======
-    if training_args.do_eval:
-        eval_dataset = datasets["validation"]
-
-        # Validation Feature 생성
-        eval_dataset = eval_dataset.map(
-            prepare_validation_features_partial,
-            batched=True,
-            num_proc=data_args.preprocessing_num_workers,
-            remove_columns=column_names,
-            load_from_cache_file=not data_args.overwrite_cache,
-        )
->>>>>>> 4005798 (feat: split eval/train reader scrpit)
 
     # Data collator
     # flag가 True이면 이미 max length로 padding된 상태입니다.
@@ -166,13 +152,8 @@ def run_mrc(
         model=model,
         args=training_args,
         train_dataset=None,
-<<<<<<< HEAD
         eval_dataset=eval_dataset,
         eval_examples=datasets["validation"],
-=======
-        eval_dataset=eval_dataset if training_args.do_eval else None,
-        eval_examples=datasets["validation"] if training_args.do_eval else None,
->>>>>>> 4005798 (feat: split eval/train reader scrpit)
         tokenizer=tokenizer,
         data_collator=data_collator,
         post_process_function=post_processing_function_partial,
@@ -180,7 +161,6 @@ def run_mrc(
     )
 
     # Evaluation
-<<<<<<< HEAD
     logger.info("*** Evaluate ***")
     metrics = trainer.evaluate()
 
@@ -188,16 +168,6 @@ def run_mrc(
 
     trainer.log_metrics("eval", metrics)
     trainer.save_metrics("eval", metrics)
-=======
-    if training_args.do_eval:
-        logger.info("*** Evaluate ***")
-        metrics = trainer.evaluate()
-
-        metrics["eval_samples"] = len(eval_dataset)
-
-        trainer.log_metrics("eval", metrics)
-        trainer.save_metrics("eval", metrics)
->>>>>>> 4005798 (feat: split eval/train reader scrpit)
 
 
 if __name__ == "__main__":

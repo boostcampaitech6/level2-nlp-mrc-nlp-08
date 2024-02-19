@@ -23,11 +23,7 @@ from transformers import (
 from utils_qa import check_no_error
 from mrc.preprocessing import prepare_train_features, prepare_validation_features
 from mrc.postprocessing import post_processing_function
-<<<<<<< HEAD
 from mrc.reader_utils import prepare_dataset
-=======
-
->>>>>>> 4005798 (feat: split eval/train reader scrpit)
 
 seed = 2024
 deterministic = False
