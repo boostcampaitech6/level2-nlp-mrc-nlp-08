@@ -8,6 +8,7 @@ import numpy as np
 from datasets import concatenate_datasets, load_from_disk
 
 from retrieve.sparse import SparseRetrieval
+from retrieve.dense import DenseRetrieval
 
 seed = 2024
 random.seed(seed) # python random seed 고정
@@ -38,6 +39,7 @@ if __name__ == "__main__":
         "--context_path", metavar="wikipedia_documents", type=str, help="",
         default="wikipedia_documents.json"
     )
+    parser.add_argument("--retrieve_type", default="sparse")
     parser.add_argument("--use_faiss", metavar=False, type=bool, help="", default=False)
 
     args = parser.parse_args()
@@ -55,36 +57,40 @@ if __name__ == "__main__":
 
     tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path, use_fast=False,)
 
-    retriever = SparseRetrieval(
-        tokenize_fn=tokenizer.tokenize,
-        data_path=args.data_path,
-        context_path=args.context_path,
-    )
-
-    query = "대통령을 포함한 미국의 행정부 견제권을 갖는 국가 기관은?"
+    if args.retrieve_type == "dense":
+        pass
+        # retriever = DenseRetrieval(
+        #     tokenizer=tokenizer,
+        #     data_path=args.data_path,
+        #     context_path=args.context_path,
+        # )
+    else:
+        retriever = SparseRetrieval(
+            tokenize_fn=tokenizer.tokenize,
+            data_path=args.data_path,
+            context_path=args.context_path,
+        )
+        retriever.get_sparse_embedding()
 
     if args.use_faiss:
-        # test single query
-        with timer("single query by faiss"):
-            scores, indices = retriever.retrieve_faiss(query)
-
         # test bulk
         with timer("bulk query by exhaustive search"):
             df = retriever.retrieve_faiss(full_ds)
             df["correct"] = df["original_context"] == df["context"]
+            print("correct retrieval result by faiss", df["correct"].sum() / len(df), "/", len(df))
 
-            print("correct retrieval result by faiss", df["correct"].sum() / len(df))
+        # test single query
+        # with timer("single query by faiss"):
+        #     query = "대통령을 포함한 미국의 행정부 견제권을 갖는 국가 기관은?"
+        #     scores, indices = retriever.retrieve_faiss(query)
 
     else:
         with timer("bulk query by exhaustive search"):
             df = retriever.retrieve(full_ds)
             df["correct"] = df["original_context"] == df["context"]
-            print(
-                "correct retrieval result by exhaustive search",
-                df["correct"].sum() / len(df),
-            )
+            print("correct retrieval result by exhaustive search", df["correct"].sum() / len(df), "/", len(df))
 
-        with timer("single query by exhaustive search"):
-            scores, indices = retriever.retrieve(query)
-
-    print("Retreival Performances ", df["correct"].sum(), "/", len(df))
+        # with timer("single query by exhaustive search"):
+        #     query = "대통령을 포함한 미국의 행정부 견제권을 갖는 국가 기관은?"    
+        #     scores, indices = retriever.retrieve(query)
+            
