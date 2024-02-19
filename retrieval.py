@@ -389,19 +389,20 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="")
     parser.add_argument(
-        "--dataset_name", metavar="./data/train_dataset", type=str, help=""
+        "--dataset_name", metavar="./data/train_dataset", type=str, help="", default="./data/train_dataset"
     )
     parser.add_argument(
         "--model_name_or_path",
         metavar="bert-base-multilingual-cased",
         type=str,
         help="",
+        default="bert-base-multilingual-cased",
     )
-    parser.add_argument("--data_path", metavar="./data", type=str, help="")
+    parser.add_argument("--data_path", metavar="data", type=str, help="", default="../data/")
     parser.add_argument(
-        "--context_path", metavar="wikipedia_documents", type=str, help=""
+        "--context_path", metavar="./wikipedia_documents", type=str, help="", default="wikipedia_documents.json"
     )
-    parser.add_argument("--use_faiss", metavar=False, type=bool, help="")
+    parser.add_argument("--use_faiss", metavar=False, type=bool, help="", default=False)
 
     args = parser.parse_args()
 
@@ -425,6 +426,8 @@ if __name__ == "__main__":
         data_path=args.data_path,
         context_path=args.context_path,
     )
+    
+    retriever.get_sparse_embedding()
 
     query = "대통령을 포함한 미국의 행정부 견제권을 갖는 국가 기관은?"
 
