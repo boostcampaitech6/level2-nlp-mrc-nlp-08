@@ -63,8 +63,7 @@ class SparseRetrieval:
         )
 
         self.p_embedding = None  # get_sparse_embedding()로 생성합니다
-        self.indexer = None  # build_faiss()로 생성합니다.
-        self.get_sparse_embedding()    
+        self.indexer = None  # build_faiss()로 생성합니다.    
 
     def get_sparse_embedding(self) -> NoReturn:
 
@@ -136,7 +135,7 @@ class SparseRetrieval:
             print("Faiss Indexer Saved.")
 
     def retrieve(
-        self, query_or_dataset: Union[str, Dataset], topk: Optional[int] = 1
+        self, query_or_dataset: Union[str, Dataset], topk: Optional[int] = 2
     ) -> Union[Tuple[List, List], pd.DataFrame]:
 
         """
