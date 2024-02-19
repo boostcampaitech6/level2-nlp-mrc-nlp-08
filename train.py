@@ -23,7 +23,11 @@ from transformers import (
 from utils_qa import check_no_error
 from mrc.preprocessing import prepare_train_features, prepare_validation_features
 from mrc.postprocessing import post_processing_function
+<<<<<<< HEAD
 from mrc.reader_utils import prepare_dataset
+=======
+
+>>>>>>> 4005798 (feat: split eval/train reader scrpit)
 
 seed = 2024
 deterministic = False
@@ -56,7 +60,7 @@ def main():
     data_args.dataset_type = 'wiki'
     training_args.num_train_epochs = 5
     training_args.learning_rate=5e-5
-    training_args.save_total_limits=2
+    training_args.save_total_limits=5
     training_args.evaluation_strategy='steps' if training_args.do_eval else 'no'
     training_args.eval_steps = 500
     training_args.report_to = ['wandb']
