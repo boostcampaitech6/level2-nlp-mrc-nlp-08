@@ -77,7 +77,7 @@ if __name__ == "__main__":
         with timer("bulk query by exhaustive search"):
             df = retriever.retrieve_faiss(full_ds)
             df["correct"] = df["original_context"] == df["context"]
-            print("correct retrieval result by faiss", df["correct"].sum() / len(df), "/", len(df))
+            print("correct retrieval result by faiss", df["correct"].sum() / len(df))
 
         # test single query
         # with timer("single query by faiss"):
@@ -88,9 +88,10 @@ if __name__ == "__main__":
         with timer("bulk query by exhaustive search"):
             df = retriever.retrieve(full_ds)
             df["correct"] = df["original_context"] == df["context"]
-            print("correct retrieval result by exhaustive search", df["correct"].sum() / len(df), "/", len(df))
+            print("correct retrieval result by exhaustive search", df["correct"].sum() / len(df))
 
         # with timer("single query by exhaustive search"):
         #     query = "대통령을 포함한 미국의 행정부 견제권을 갖는 국가 기관은?"    
         #     scores, indices = retriever.retrieve(query)
             
+    print("Retrieval Performance", df["correct"].sum(), "/", len(df))
