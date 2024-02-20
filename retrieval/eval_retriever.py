@@ -40,6 +40,7 @@ if __name__ == "__main__":
         default="wikipedia_documents.json"
     )
     parser.add_argument("--retrieve_type", default="sparse")
+    parser.add_argument("--topk", type=int, default=30)
     parser.add_argument("--use_faiss", metavar=False, type=bool, help="", default=False)
 
     args = parser.parse_args()
@@ -86,7 +87,7 @@ if __name__ == "__main__":
 
     else:
         with timer("bulk query by exhaustive search"):
-            df = retriever.retrieve(full_ds, topk=20)
+            df = retriever.retrieve(full_ds, topk=args.topk)
             # df["correct"] = df["original_context"] == df["context"]
             df['correct'] = df.apply(
                 lambda x: 1 if x.original_context in x.context else 0, axis=1
@@ -96,6 +97,6 @@ if __name__ == "__main__":
 
         # with timer("single query by exhaustive search"):
         #     query = "대통령을 포함한 미국의 행정부 견제권을 갖는 국가 기관은?"    
-        #     scores, indices = retriever.retrieve(query)
+        #     scores, indices = retriever.retrieve(query, topk=args.topk)
             
     print("Retrieval Performance", df["correct"].sum(), "/", len(df))
