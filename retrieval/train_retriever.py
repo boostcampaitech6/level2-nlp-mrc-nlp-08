@@ -133,7 +133,7 @@ def main():
                 p_outputs = retriever.p_encoder(**p_inputs)  # (batch_size*(num_neg+1), emb_dim)
                 q_outputs = retriever.q_encoder(**q_inputs)  # (batch_size*, emb_dim)
 
-                    # Calculate similarity score & loss
+                # Calculate similarity score & loss
                 p_outputs = p_outputs.view(batch_size, num_neg + 1, -1)
                 q_outputs = q_outputs.view(batch_size, 1, -1)
 

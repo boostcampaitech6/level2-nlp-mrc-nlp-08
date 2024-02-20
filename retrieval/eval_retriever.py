@@ -39,7 +39,7 @@ if __name__ == "__main__":
         "--context_path", metavar="wikipedia_documents", type=str, help="",
         default="wikipedia_documents.json"
     )
-    parser.add_argument("--retrieve_type", default="dense")
+    parser.add_argument("--retrieve_type", default="sparse")
     parser.add_argument("--use_faiss", metavar=False, type=bool, help="", default=False)
 
     args = parser.parse_args()
@@ -74,7 +74,9 @@ if __name__ == "__main__":
         # test bulk
         with timer("bulk query by exhaustive search"):
             df = retriever.retrieve_faiss(full_ds)
-            df["correct"] = df["original_context"] == df["context"]
+            df['correct'] = df.apply(
+                lambda x: 1 if x.original_context in x.context else 0, axis=1
+            )
             print("correct retrieval result by faiss", df["correct"].sum() / len(df))
 
         # test single query
@@ -84,8 +86,12 @@ if __name__ == "__main__":
 
     else:
         with timer("bulk query by exhaustive search"):
-            df = retriever.retrieve(full_ds)
-            df["correct"] = df["original_context"] == df["context"]
+            df = retriever.retrieve(full_ds, topk=20)
+            # df["correct"] = df["original_context"] == df["context"]
+            df['correct'] = df.apply(
+                lambda x: 1 if x.original_context in x.context else 0, axis=1
+            )
+
             print("correct retrieval result by exhaustive search", df["correct"].sum() / len(df))
 
         # with timer("single query by exhaustive search"):
