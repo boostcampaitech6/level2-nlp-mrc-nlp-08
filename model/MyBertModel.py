@@ -9,7 +9,7 @@ from transformers.modeling_outputs import (
 
 from MyBertEmbeddings import MyBertEmbeddings
 
-class BertModel(BertPreTrainedModel):
+class MyBertModel(BertPreTrainedModel):
     """
 
     The model can behave as an encoder (with only self-attention) as well as a decoder, in which case a layer of
