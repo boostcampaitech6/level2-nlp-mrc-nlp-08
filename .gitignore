@@ -163,3 +163,5 @@ cython_debug/
 *.ckpt
 
 assets/
+
+models/
