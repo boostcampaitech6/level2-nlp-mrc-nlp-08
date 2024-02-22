@@ -23,7 +23,7 @@ from transformers import (
 from utils_qa import check_no_error
 from mrc.preprocessing import prepare_train_features, prepare_validation_features
 from mrc.postprocessing import post_processing_function
-
+from mrc.reader_utils import prepare_dataset
 
 seed = 2024
 deterministic = False
@@ -43,7 +43,6 @@ logger = logging.getLogger(__name__)
 def main():
     # 가능한 arguments 들은 ./arguments.py 나 transformer package 안의 src/transformers/training_args.py 에서 확인 가능합니다.
     # --help flag 를 실행시켜서 확인할 수 도 있습니다.
-
     parser = HfArgumentParser(
         (ModelArguments, DataTrainingArguments, TrainingArguments)
     )
@@ -51,13 +50,15 @@ def main():
 
     # [참고] argument를 manual하게 수정하고 싶은 경우에 아래와 같은 방식을 사용할 수 있습니다
     # print(training_args.per_device_train_batch_size)
-    # training_args.per_device_train_batch_size = 16
-    # training_args.per_device_eval_batch_size = 16
-    # training_args.num_train_epochs = 10
-    # training_args.learning_rate=5e-5
-    # training_args.evaluation_strategy='steps' if training_args.do_eval else 'no'
-    # training_args.eval_steps = 200
-    # training_args.report_to = ['wandb']
+    training_args.per_device_train_batch_size = 16
+    training_args.per_device_eval_batch_size = 16
+    model_args.model_name_or_path = 'klue/roberta-large'
+    data_args.dataset_type = 'wiki'
+    training_args.num_train_epochs = 5
+    training_args.learning_rate=5e-5
+    training_args.evaluation_strategy='steps' if training_args.do_eval else 'no'
+    training_args.eval_steps = 500
+    training_args.report_to = ['wandb']
 
     print(f"model is from {model_args.model_name_or_path}")
     print(f"data is from {data_args.dataset_name}")
@@ -75,7 +76,7 @@ def main():
     # 모델을 초기화하기 전에 난수를 고정합니다.
     set_seed(training_args.seed)
 
-    datasets = load_from_disk(data_args.dataset_name)
+    datasets = prepare_dataset(data_args.dataset_type, data_args.dataset_name)
     print(datasets)
 
     # AutoConfig를 이용하여 pretrained model 과 tokenizer를 불러옵니다.
