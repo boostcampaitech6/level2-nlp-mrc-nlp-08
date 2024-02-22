@@ -62,7 +62,7 @@ def prepare_in_batch_negative(dataset=None, num_neg=2, tokenizer=None, batch_siz
         return train_dataloader, passage_dataloader
 
 def main():
-    model_checkpoint = 'klue/bert-base'
+    model_checkpoint = 'klue/roberta-large'
     tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
     
     # 데이터셋과 모델은 아래와 같이 불러옵니다.

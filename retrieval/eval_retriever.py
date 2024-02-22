@@ -20,7 +20,6 @@ def timer(name):
     yield
     print(f"[{name}] done in {time.time() - t0:.3f} s")
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="")
     parser.add_argument(
@@ -29,10 +28,10 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--model_name_or_path",
-        metavar="bert-base-multilingual-cased",
+        metavar="klue/roberta-large",
         type=str,
         help="",
-        default="bert-base-multilingual-cased"
+        default="klue/roberta-large"
     )
     parser.add_argument("--data_path", metavar="../data", type=str, help="", default="../../data")
     parser.add_argument(
@@ -58,7 +57,7 @@ if __name__ == "__main__":
 
     if args.retrieve_type == "dense":
         retriever = DenseRetrieval(
-            tokenizer=AutoTokenizer.from_pretrained("klue/bert-base", use_fast=False),
+            tokenizer=AutoTokenizer.from_pretrained(args.model_name_or_path, use_fast=False),
             p_encoder=BertEncoder.from_pretrained("./p_encoder"),
             q_encoder=BertEncoder.from_pretrained("./q_encoder")
         )
