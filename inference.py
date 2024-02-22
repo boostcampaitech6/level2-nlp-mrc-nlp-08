@@ -28,7 +28,7 @@ from transformers import (
     set_seed,
 )
 from utils_qa import check_no_error
-from retrieval.retrieval_utils import run_sparse_retrieval
+from retrieval.retrieval_utils import run_sparse_retrieval, run_dense_retrieval
 from mrc.preprocessing import prepare_validation_features
 from mrc.postprocessing import post_processing_function
 

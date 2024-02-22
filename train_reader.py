@@ -69,10 +69,9 @@ def main():
     training_args.eval_steps = 500
     training_args.report_to = ['wandb']
 
-    print(f"---> model_args ", model_args)
-    print(f"---> data_args ", data_args)
-    print(f"---> training_args ", training_args)
-
+    print(model_args)
+    print(data_args)
+    print(training_args)
     
     # verbosity 설정 : Transformers logger의 정보로 사용합니다 (on main process only)
     logger.info("Training/evaluation parameters %s", training_args)
