@@ -15,7 +15,10 @@ class MyRobertaForQuestionAnswering(RobertaPreTrainedModel):
         self.num_labels = config.num_labels
 
         self.roberta = RobertaModel(config, add_pooling_layer=False)
+        self.qa_outputs_lstm = nn.LSTM(config.hidden_size, config.hidden_size, batch_first=True)
         self.qa_outputs = nn.Linear(config.hidden_size, config.num_labels)
+        
+        self.init_weights()
 
         # Initialize weights and apply final processing
         self.post_init()
@@ -60,7 +63,9 @@ class MyRobertaForQuestionAnswering(RobertaPreTrainedModel):
 
         sequence_output = outputs[0]
 
-        logits = self.qa_outputs(sequence_output)
+        _, (next_hidden, _) = self.qa_outputs_lstm(outputs[0])
+        last_hidden_state = torch.cat((next_hidden[-1], next_hidden[-2]), dim=-1)
+        logits = self.linear(last_hidden_state)
         start_logits, end_logits = logits.split(1, dim=-1)
         start_logits = start_logits.squeeze(-1).contiguous()
         end_logits = end_logits.squeeze(-1).contiguous()
