@@ -36,9 +36,13 @@ if deterministic: # cudnn random seed 고정 - 고정 시 학습 속도가 느�
 	torch.backends.cudnn.deterministic = True
 	torch.backends.cudnn.benchmark = False
 
-
+# logging 설정
 logger = logging.getLogger(__name__)
-
+logging.basicConfig(
+    format="%(asctime)s - %(levelname)s - %(name)s -    %(message)s",
+    datefmt="%m/%d/%Y %H:%M:%S",
+    handlers=[logging.StreamHandler(sys.stdout)],
+)
 
 def main():
     # 가능한 arguments 들은 ./arguments.py 나 transformer package 안의 src/transformers/training_args.py 에서 확인 가능합니다.
@@ -48,31 +52,29 @@ def main():
     )
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
-    # [참고] argument를 manual하게 수정하고 싶은 경우에 아래와 같은 방식을 사용할 수 있습니다
-    # print(training_args.per_device_train_batch_size)
-    training_args.per_device_train_batch_size = 16
-    training_args.per_device_eval_batch_size = 16
     model_args.model_name_or_path = 'klue/roberta-large'
+
     data_args.dataset_type = 'wiki'
+    data_args.dataset_name = '../data/train_dataset/'
+
+    training_args.overwrite_output_dir = True
+    training_args.do_train = True
+    training_args.do_eval = True
+
+    training_args.per_device_train_batch_size = 8
+    training_args.per_device_eval_batch_size = 8
     training_args.num_train_epochs = 5
     training_args.learning_rate=5e-5
     training_args.evaluation_strategy='steps' if training_args.do_eval else 'no'
     training_args.eval_steps = 500
     training_args.report_to = ['wandb']
 
-    print(f"model is from {model_args.model_name_or_path}")
-    print(f"data is from {data_args.dataset_name}")
-
-    # logging 설정
-    logging.basicConfig(
-        format="%(asctime)s - %(levelname)s - %(name)s -    %(message)s",
-        datefmt="%m/%d/%Y %H:%M:%S",
-        handlers=[logging.StreamHandler(sys.stdout)],
-    )
-
+    print(model_args)
+    print(data_args)
+    print(training_args)
+    
     # verbosity 설정 : Transformers logger의 정보로 사용합니다 (on main process only)
     logger.info("Training/evaluation parameters %s", training_args)
-
     # 모델을 초기화하기 전에 난수를 고정합니다.
     set_seed(training_args.seed)
 
@@ -101,15 +103,6 @@ def main():
         config=config,
     )
 
-    print(
-        type(training_args),
-        type(model_args),
-        type(datasets),
-        type(tokenizer),
-        type(model),
-    )
-
-    # do_train mrc model 혹은 do_eval mrc model
     if training_args.do_train or training_args.do_eval:
         run_mrc(data_args, training_args, model_args, datasets, tokenizer, model)
 
